@@ -68,5 +68,5 @@ Usage of ./livego:
 docker运行
 
 ```
-docker run -d --name livego --restart always -p 1935:1935 -p 7001:7001 -p 7002:7002 -p 8090:8090 -v /opt/docker/livego/config/livego.yaml:/app/config/livego.yaml -v /data/docker/lovego/archive:/app/tmp xwc1125/livego:0.0.16 --config_file=/app/config/livego.yaml
+docker run -d --name livego --restart always -p 1935:1935 -p 7001:7001 -p 7002:7002 -p 8090:8090 -v /data/app/livego/config/livego.yaml:/app/config/livego.yaml -v /data/docker/livego/archive:/app/tmp xwc1125/livego:0.0.16 --config_file=/app/config/livego.yaml
 ```
