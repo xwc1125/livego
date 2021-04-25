@@ -65,3 +65,8 @@ Usage of ./livego:
 
 对Golang感兴趣？请看[Golang 中文学习资料汇总](http://go.wuhaolin.cn/)
 
+docker运行
+
+```
+docker run -d --name livego --restart always -p 1935:1935 -p 7001:7001 -p 7002:7002 -p 8090:8090 -v /opt/docker/livego/config/livego.yaml:/app/config/livego.yaml -v /data/docker/lovego/archive:/app/tmp xwc1125/livego:0.0.16 --config_file=/app/config/livego.yaml
+```

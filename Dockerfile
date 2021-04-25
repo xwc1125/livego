@@ -6,7 +6,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o livego .
 
-FROM alpine:latest
+FROM jrottenberg/ffmpeg:3.2-alpine
 RUN mkdir -p /app/config
 WORKDIR /app
 ENV RTMP_PORT 1935

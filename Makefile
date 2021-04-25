@@ -6,10 +6,11 @@ GOGET = $(GOCMD) get
 BINARY_NAME = livego
 BINARY_UNIX = $(BINARY_NAME)_unix
 
-DOCKER_ACC ?= gwuhaolin
+DOCKER_ACC ?= xwc1125
 DOCKER_REPO ?= livego
 
-TAG ?= $(shell git describe --tags --abbrev=0 2>/dev/null)
+#TAG = $(shell git describe --tags --abbrev=0 2>/dev/null)
+TAG = 0.0.16
 
 default: all
 
@@ -34,3 +35,4 @@ build-linux:
 dockerize:
 	docker build -t $(DOCKER_ACC)/$(DOCKER_REPO):$(TAG) .
 	docker push $(DOCKER_ACC)/$(DOCKER_REPO):$(TAG)
+
