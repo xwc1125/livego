@@ -27,6 +27,7 @@ var (
 	STATIC_RELAY_STOP_CTRL = "STATIC_RTMPRELAY_STOP"
 )
 
+// GetStaticPushList 获取静态推送的列表
 func GetStaticPushList(appname string) ([]string, error) {
 	if G_PushUrlList == nil {
 		// Do not unmarshel the config every time, lots of reflect works -gs
@@ -45,6 +46,7 @@ func GetStaticPushList(appname string) ([]string, error) {
 	return G_PushUrlList, nil
 }
 
+// GetAndCreateStaticPushObject 创建并返回静态推送对象
 func GetAndCreateStaticPushObject(rtmpurl string) *StaticPush {
 	g_MapLock.RLock()
 	staticpush, ok := G_StaticPushMap[rtmpurl]
@@ -64,6 +66,7 @@ func GetAndCreateStaticPushObject(rtmpurl string) *StaticPush {
 	return staticpush
 }
 
+// GetStaticPushObject 获取静态推送对象，没有返回错误
 func GetStaticPushObject(rtmpurl string) (*StaticPush, error) {
 	g_MapLock.RLock()
 	if staticpush, ok := G_StaticPushMap[rtmpurl]; ok {
@@ -75,6 +78,7 @@ func GetStaticPushObject(rtmpurl string) (*StaticPush, error) {
 	return nil, fmt.Errorf("G_StaticPushMap[%s] not exist....", rtmpurl)
 }
 
+// ReleaseStaticPushObject 正式的静态推送对象
 func ReleaseStaticPushObject(rtmpurl string) {
 	g_MapLock.RLock()
 	if _, ok := G_StaticPushMap[rtmpurl]; ok {
@@ -90,6 +94,7 @@ func ReleaseStaticPushObject(rtmpurl string) {
 	}
 }
 
+// NewStaticPush 创建新的静态推送
 func NewStaticPush(rtmpurl string) *StaticPush {
 	return &StaticPush{
 		RtmpUrl:       rtmpurl,
@@ -100,6 +105,7 @@ func NewStaticPush(rtmpurl string) *StaticPush {
 	}
 }
 
+// Start 开始静态推送
 func (self *StaticPush) Start() error {
 	if self.startflag {
 		return fmt.Errorf("StaticPush already start %s", self.RtmpUrl)
@@ -120,6 +126,7 @@ func (self *StaticPush) Start() error {
 	return nil
 }
 
+// Stop 停止推送
 func (self *StaticPush) Stop() {
 	if !self.startflag {
 		return
@@ -130,6 +137,7 @@ func (self *StaticPush) Stop() {
 	self.startflag = false
 }
 
+// WriteAvPacket 写av包
 func (self *StaticPush) WriteAvPacket(packet *av.Packet) {
 	if !self.startflag {
 		return
@@ -138,6 +146,7 @@ func (self *StaticPush) WriteAvPacket(packet *av.Packet) {
 	self.packet_chan <- packet
 }
 
+// sendPacket 发送包
 func (self *StaticPush) sendPacket(p *av.Packet) {
 	if !self.startflag {
 		return
@@ -165,6 +174,7 @@ func (self *StaticPush) sendPacket(p *av.Packet) {
 	self.connectClient.Write(cs)
 }
 
+// HandleAvPacket 处理包
 func (self *StaticPush) HandleAvPacket() {
 	if !self.IsStart() {
 		log.Debugf("static push %s not started", self.RtmpUrl)
@@ -185,6 +195,7 @@ func (self *StaticPush) HandleAvPacket() {
 	}
 }
 
+// IsStart 是否已启动
 func (self *StaticPush) IsStart() bool {
 	return self.startflag
 }

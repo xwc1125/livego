@@ -15,7 +15,7 @@
     </style>
     <div>
         <video id="myVideo" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" data-setup='{}' style='width: 100%;height: auto'>
-            <source id="source" src="http://localhost:7001/live/movie.m3u8" type="application/x-mpegURL"></source>
+            <source id="source" src="file:///Users/yijiaren/Workspaces/git/github/go/livego-center/lal/tmp/lal/hls/record.m3u8" type="application/x-mpegURL"></source>
         </video>
     </div>
     <div class="qiehuan" style="width:100px;height: 100px;background: red;margin:0 auto;line-height: 100px;color:#fff;text-align: center">切换视频</div>
@@ -42,7 +42,7 @@
         myVideo.load();
         myVideo.play();
     }
-    var src = 'http://localhost:7001/live/movie.m3u8';
+    var src = 'file:///Users/yijiaren/Workspaces/git/github/go/livego-center/lal/tmp/lal/hls/record.m3u8';
     document.querySelector('.qiehuan').addEventListener('click', function () {
         changeVideo(src);
     })

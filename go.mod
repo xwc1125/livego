@@ -13,6 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.6.3
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/urfave/negroni v1.0.0 // indirect
+	github.com/xfrr/goffmpeg v0.0.0-20200825100927-5550d238df5c
 )

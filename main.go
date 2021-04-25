@@ -15,8 +15,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// VERSION 版本
 var VERSION = "master"
 
+// startHls 启动hls服务
 func startHls() *hls.Server {
 	hlsAddr := configure.Config.GetString("hls_addr")
 	hlsListen, err := net.Listen("tcp", hlsAddr)
@@ -39,6 +41,7 @@ func startHls() *hls.Server {
 
 var rtmpAddr string
 
+// startRtmp 启动rtmp服务
 func startRtmp(stream *rtmp.RtmpStream, hlsServer *hls.Server) {
 	rtmpAddr = configure.Config.GetString("rtmp_addr")
 
@@ -66,10 +69,11 @@ func startRtmp(stream *rtmp.RtmpStream, hlsServer *hls.Server) {
 	rtmpServer.Serve(rtmpListen)
 }
 
+// startHTTPFlv 启动httpFlv服务
 func startHTTPFlv(stream *rtmp.RtmpStream) {
-	httpflvAddr := configure.Config.GetString("httpflv_addr")
+	httpFlvAddr := configure.Config.GetString("httpflv_addr")
 
-	flvListen, err := net.Listen("tcp", httpflvAddr)
+	flvListen, err := net.Listen("tcp", httpFlvAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,11 +85,12 @@ func startHTTPFlv(stream *rtmp.RtmpStream) {
 				log.Error("HTTP-FLV server panic: ", r)
 			}
 		}()
-		log.Info("HTTP-FLV listen On ", httpflvAddr)
+		log.Info("HTTP-FLV listen On ", httpFlvAddr)
 		hdlServer.Serve(flvListen)
 	}()
 }
 
+// startAPI 启动API服务
 func startAPI(stream *rtmp.RtmpStream) {
 	apiAddr := configure.Config.GetString("api_addr")
 
@@ -107,6 +112,7 @@ func startAPI(stream *rtmp.RtmpStream) {
 	}
 }
 
+// init 初始化日志
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
@@ -126,29 +132,33 @@ func main() {
 	}()
 
 	log.Infof(`
-     _     _            ____       
-    | |   (_)_   _____ / ___| ___  
-    | |   | \ \ / / _ \ |  _ / _ \ 
+     _     _            ____
+    | |   (_)_   _____ / ___| ___
+    | |   | \ \ / / _ \ |  _ / _ \
     | |___| |\ V /  __/ |_| | (_) |
-    |_____|_| \_/ \___|\____|\___/ 
+    |_____|_| \_/ \___|\____|\___/
         version: %s
 	`, VERSION)
 
+	// 解析yml文件
 	apps := configure.Applications{}
 	configure.Config.UnmarshalKey("server", &apps)
 	for _, app := range apps {
 		stream := rtmp.NewRtmpStream()
 		var hlsServer *hls.Server
 		if app.Hls {
+			// 启动hls
 			hlsServer = startHls()
 		}
 		if app.Flv {
+			// 启动flv
 			startHTTPFlv(stream)
 		}
 		if app.Api {
+			// 启动api
 			startAPI(stream)
 		}
-
+		// 启动rtmp
 		startRtmp(stream, hlsServer)
 	}
 }

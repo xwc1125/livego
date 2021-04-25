@@ -173,6 +173,7 @@ func (s *Stream) StartStaticPush() {
 		return
 	}
 
+	// 如果推送列表存在，那么开始进行静态推送
 	for _, pushurl := range pushurllist {
 		pushurl := pushurl + "/" + streamname
 		log.Debugf("StartStaticPush: static pushurl=%s", pushurl)
@@ -190,6 +191,7 @@ func (s *Stream) StartStaticPush() {
 	}
 }
 
+// StopStaticPush 停止静态推送
 func (s *Stream) StopStaticPush() {
 	key := s.info.Key
 
@@ -229,6 +231,7 @@ func (s *Stream) StopStaticPush() {
 	}
 }
 
+// IsSendStaticPush 判断是否为静态推送
 func (s *Stream) IsSendStaticPush() bool {
 	key := s.info.Key
 
@@ -269,6 +272,7 @@ func (s *Stream) IsSendStaticPush() bool {
 	return false
 }
 
+// SendStaticPush 发送静态推送包
 func (s *Stream) SendStaticPush(packet av.Packet) {
 	key := s.info.Key
 
@@ -306,6 +310,7 @@ func (s *Stream) SendStaticPush(packet av.Packet) {
 	}
 }
 
+// TransStart 传送开始
 func (s *Stream) TransStart() {
 	s.isStart = true
 	var p av.Packet
@@ -356,6 +361,7 @@ func (s *Stream) TransStart() {
 	}
 }
 
+// TransStop 传送结束
 func (s *Stream) TransStop() {
 	log.Debugf("TransStop: %s", s.info.Key)
 
@@ -366,6 +372,7 @@ func (s *Stream) TransStop() {
 	s.isStart = false
 }
 
+// CheckAlive 检测是否存活
 func (s *Stream) CheckAlive() (n int) {
 	if s.r != nil && s.isStart {
 		if s.r.Alive() {
@@ -393,6 +400,7 @@ func (s *Stream) CheckAlive() (n int) {
 	return
 }
 
+// closeInter 内部关闭
 func (s *Stream) closeInter() {
 	if s.r != nil {
 		s.StopStaticPush()

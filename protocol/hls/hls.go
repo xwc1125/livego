@@ -21,6 +21,7 @@ const (
 	duration = 3000
 )
 
+// ErrNoPublisher ...
 var (
 	ErrNoPublisher         = fmt.Errorf("no publisher")
 	ErrInvalidReq          = fmt.Errorf("invalid req url path")
@@ -34,11 +35,13 @@ var crossdomainxml = []byte(`<?xml version="1.0" ?>
 	<allow-http-request-headers-from domain="*" headers="*"/>
 </cross-domain-policy>`)
 
+// Server ...
 type Server struct {
 	listener net.Listener
 	conns    *sync.Map
 }
 
+// NewServer ...
 func NewServer() *Server {
 	ret := &Server{
 		conns: &sync.Map{},
@@ -47,6 +50,7 @@ func NewServer() *Server {
 	return ret
 }
 
+// Serve ...
 func (server *Server) Serve(listener net.Listener) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +61,7 @@ func (server *Server) Serve(listener net.Listener) error {
 	return nil
 }
 
+// GetWriter ...
 func (server *Server) GetWriter(info av.Info) av.WriteCloser {
 	var s *Source
 	v, ok := server.conns.Load(info.Key)
@@ -78,6 +83,7 @@ func (server *Server) getConn(key string) *Source {
 	return v.(*Source)
 }
 
+// checkStop 检测停止
 func (server *Server) checkStop() {
 	for {
 		<-time.After(5 * time.Second)
@@ -145,17 +151,19 @@ func (server *Server) handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (server *Server) parseM3u8(pathstr string) (key string, err error) {
-	pathstr = strings.TrimLeft(pathstr, "/")
-	key = strings.Split(pathstr, path.Ext(pathstr))[0]
+// parseM3u8 解析m3u8地址
+func (server *Server) parseM3u8(pathStr string) (key string, err error) {
+	pathStr = strings.TrimLeft(pathStr, "/")
+	key = strings.Split(pathStr, path.Ext(pathStr))[0]
 	return
 }
 
-func (server *Server) parseTs(pathstr string) (key string, err error) {
-	pathstr = strings.TrimLeft(pathstr, "/")
-	paths := strings.SplitN(pathstr, "/", 3)
+// parseTs 解析ts地址
+func (server *Server) parseTs(pathStr string) (key string, err error) {
+	pathStr = strings.TrimLeft(pathStr, "/")
+	paths := strings.SplitN(pathStr, "/", 3)
 	if len(paths) != 3 {
-		err = fmt.Errorf("invalid path=%s", pathstr)
+		err = fmt.Errorf("invalid path=%s", pathStr)
 		return
 	}
 	key = paths[0] + "/" + paths[1]

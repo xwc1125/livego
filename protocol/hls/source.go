@@ -97,7 +97,7 @@ func (source *Source) DropPacket(pktQue chan *av.Packet, info av.Info) {
 	log.Debug("packet queue len: ", len(pktQue))
 }
 
-// 推送过来的数据包
+// [xwc1125] 写推送过来的数据包
 func (source *Source) Write(p *av.Packet) (err error) {
 	err = nil
 	if source.closed {
@@ -157,6 +157,7 @@ func (source *Source) SendPacket() error {
 			if err != nil || isSeq {
 				continue
 			}
+			// [xwc1125]批量ts写
 			if source.btswriter != nil {
 				source.stat.update(p.IsVideo, p.TimeStamp)
 				source.calcPtsDts(p.IsVideo, p.TimeStamp, uint32(compositionTime))

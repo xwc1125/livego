@@ -2,6 +2,7 @@ package flv
 
 import (
 	"fmt"
+	"github.com/gwuhaolin/livego/container/archive/mp4"
 	"os"
 	"path"
 	"strings"
@@ -57,9 +58,10 @@ type FLVWriter struct {
 	closed          chan struct{}
 	ctx             *os.File
 	closedWriter    bool
+	archive         *mp4.Mp4
 }
 
-func NewFLVWriter(app, title, url string, ctx *os.File) *FLVWriter {
+func NewFLVWriter(app, title, url string, ctx *os.File, archive *mp4.Mp4) *FLVWriter {
 	ret := &FLVWriter{
 		Uid:     uid.NewId(),
 		app:     app,
@@ -69,6 +71,7 @@ func NewFLVWriter(app, title, url string, ctx *os.File) *FLVWriter {
 		RWBaser: av.NewRWBaser(time.Second * 10),
 		closed:  make(chan struct{}),
 		buf:     make([]byte, headerLen),
+		archive: archive,
 	}
 
 	ret.ctx.Write(flvHeader)
@@ -132,8 +135,19 @@ func (writer *FLVWriter) Wait() {
 }
 
 func (writer *FLVWriter) Close(error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Warn("FLVWriter Close err", err)
+		}
+	}()
+	// [xwc1125] 关闭flv写处理
+	log.Errorf("[Close Flv]%s", writer.url)
 	if writer.closedWriter {
 		return
+	}
+	// [xwc1125] 将flv转换为mp4
+	if writer.archive != nil {
+		writer.archive.Add(writer.ctx.Name(), writer.ctx.Name()+".mp4")
 	}
 	writer.closedWriter = true
 	writer.ctx.Close()
@@ -149,7 +163,7 @@ func (writer *FLVWriter) Info() (ret av.Info) {
 
 type FlvDvr struct{}
 
-func (f *FlvDvr) GetWriter(info av.Info) av.WriteCloser {
+func (f *FlvDvr) GetWriter(info av.Info, archive *mp4.Mp4) av.WriteCloser {
 	paths := strings.SplitN(info.Key, "/", 2)
 	if len(paths) != 2 {
 		log.Warning("invalid info")
@@ -158,13 +172,22 @@ func (f *FlvDvr) GetWriter(info av.Info) av.WriteCloser {
 
 	flvDir := configure.Config.GetString("flv_dir")
 
-	err := os.MkdirAll(path.Join(flvDir, paths[0]), 0755)
+	// [xwc1125]根据key创建不同的文件夹
+	appName := paths[0]
+	key := paths[1]
+	err := os.MkdirAll(path.Join(flvDir, appName), 0755)
 	if err != nil {
 		log.Error("mkdir error: ", err)
 		return nil
 	}
 
-	fileName := fmt.Sprintf("%s_%d.%s", path.Join(flvDir, info.Key), time.Now().Unix(), "flv")
+	// [xwc1125]设置文件名
+	var fileName string
+	if configure.Config.GetBool("archive_singleton") {
+		fileName = fmt.Sprintf("%s.%s", path.Join(flvDir, info.Key), "flv")
+	} else {
+		fileName = fmt.Sprintf("%s_%d.%s", path.Join(flvDir, info.Key), time.Now().Unix(), "flv")
+	}
 	log.Debug("flv dvr save stream to: ", fileName)
 	w, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
@@ -172,7 +195,7 @@ func (f *FlvDvr) GetWriter(info av.Info) av.WriteCloser {
 		return nil
 	}
 
-	writer := NewFLVWriter(paths[0], paths[1], info.URL, w)
+	writer := NewFLVWriter(appName, key, info.URL, w, archive)
 	log.Debug("new flv dvr: ", writer.Info())
 	return writer
 }

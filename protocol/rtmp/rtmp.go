@@ -2,6 +2,7 @@ package rtmp
 
 import (
 	"fmt"
+	"github.com/gwuhaolin/livego/container/archive/mp4"
 	"net"
 	"net/url"
 	"reflect"
@@ -68,12 +69,14 @@ func (c *Client) GetHandle() av.Handler {
 type Server struct {
 	handler av.Handler
 	getter  av.GetWriter
+	mp4Arch *mp4.Mp4
 }
 
 func NewRtmpServer(h av.Handler, getter av.GetWriter) *Server {
 	return &Server{
 		handler: h,
 		getter:  getter,
+		mp4Arch: mp4.New(),
 	}
 }
 
@@ -110,7 +113,7 @@ func (s *Server) handleConn(conn *core.Conn) error {
 		log.Error("handleConn read msg err: ", err)
 		return err
 	}
-
+	// [xwc1125]appname：路由链接，name：为key
 	appname, name, _ := connServer.GetInfo()
 
 	if ret := configure.CheckAppName(appname); !ret {
@@ -140,6 +143,7 @@ func (s *Server) handleConn(conn *core.Conn) error {
 			return err
 		}
 		connServer.PublishInfo.Name = channel
+
 		if pushlist, ret := configure.GetStaticPushUrlList(appname); ret && (pushlist != nil) {
 			log.Debugf("GetStaticPushUrlList: %v", pushlist)
 		}
@@ -153,9 +157,14 @@ func (s *Server) handleConn(conn *core.Conn) error {
 			writer := s.getter.GetWriter(reader.Info())
 			s.handler.HandleWriter(writer)
 		}
+		// 【xwc1125】进行归档
 		if configure.Config.GetBool("flv_archive") {
 			flvWriter := new(flv.FlvDvr)
-			s.handler.HandleWriter(flvWriter.GetWriter(reader.Info()))
+			if configure.Config.GetBool("flv_archive") {
+				s.handler.HandleWriter(flvWriter.GetWriter(reader.Info(), s.mp4Arch))
+			} else {
+				s.handler.HandleWriter(flvWriter.GetWriter(reader.Info(), nil))
+			}
 		}
 	} else {
 		writer := NewVirWriter(connServer)
